@@ -1,0 +1,45 @@
+{
+  "name": "@zyzy-org/blog-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for automatically creating blog posts in your tech blog",
+  "main": "dist/index.js",
+  "bin": {
+    "blog-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
+    "test": "node test-config.js",
+    "publish-package": "npm publish --access public"
+  },
+  "keywords": [
+    "mcp",
+    "blog",
+    "cursor",
+    "ai",
+    "supabase",
+    "nextjs"
+  ],
+  "author": "ziyouzhiyi",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zyzy-org/blog-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zyzy-org/blog-mcp-server/issues"
+  },
+  "homepage": "https://github.com/zyzy-org/blog-mcp-server#readme"
+}
