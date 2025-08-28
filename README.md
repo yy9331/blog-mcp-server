@@ -2,29 +2,29 @@
 
 <div align="center">
 
-[README_EN.md 查看英文版](./README_EN.md) 
+[README.md for Chinese version](./README.md) 
 
 </div>
 
-> 私人 MCP 服务器 - 让 AI 助手直接在你的技术博客中创建文章
+> Private MCP Server - Let AI assistants create articles directly in your tech blog
 
-这是一个专为你的博客定制的私人 MCP (Model Context Protocol) 服务器，允许 AI 助手（如 Cursor、Claude 等）直接在你的技术博客中创建文章，无需手动编辑。
+This is a private MCP (Model Context Protocol) server customized for your blog, allowing AI assistants (such as Cursor, Claude, etc.) to create articles directly in your tech blog without manual editing.
 
-## 🎯 项目特点
+## 🎯 Project Features
 
-- 🔒 **私人服务** - 专为你的博客定制，不对外公开
-- 🚀 **自动化创建** - AI 可以直接创建完整的博客文章
-- 📝 **Markdown 支持** - 支持完整的 Markdown 格式
-- 🏷️ **标签管理** - 自动创建和管理文章标签
-- 🔐 **安全认证** - 多层安全验证机制
-- 📦 **npm 包** - 可直接通过 npx 安装使用
-- ⚡ **实时发布** - 文章创建后立即可见
+- 🔒 **Private Service** - Customized for your blog, not publicly available
+- 🚀 **Automated Creation** - AI can create complete blog articles directly
+- 📝 **Markdown Support** - Full Markdown format support
+- 🏷️ **Tag Management** - Automatic creation and management of article tags
+- 🔐 **Security Authentication** - Multi-layer security verification mechanism
+- 📦 **npm Package** - Can be installed directly via npx
+- ⚡ **Real-time Publishing** - Articles are immediately visible after creation
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 1. 在 Cursor 中配置
+### 1. Configure in Cursor
 
-在你的 Cursor 设置文件 `~/.cursor/mcp.json` 中添加以下配置：
+Add the following configuration to your Cursor settings file `~/.cursor/mcp.json`:
 
 ```json
 {
@@ -45,52 +45,52 @@
 }
 ```
 
-### 2. 重启 Cursor
+### 2. Restart Cursor
 
-配置完成后，重启 Cursor 以使新的 MCP 服务器生效。
+After configuration, restart Cursor to activate the new MCP server.
 
-### 3. 开始使用
+### 3. Start Using
 
-在 Cursor 中直接使用：
+Use directly in Cursor:
 
 ```
-请在我的博客中创建一篇关于 React Hooks 的文章
+Please create an article about React Hooks in my blog
 ```
 
-## 🛠️ 可用工具
+## 🛠️ Available Tools
 
 ### create_blog_post
-创建单篇博客文章
+Create a single blog article
 
-**参数:**
-- `title` (string): 文章标题（必需）
-- `content` (string): 文章内容，支持 Markdown（必需）
-- `tags` (array): 文章标签（可选）
-- `author` (string): 作者名称（可选）
-- `readTime` (number): 预计阅读时间（分钟）（可选）
-- `date` (string): 发布日期（ISO 8601 格式）（可选）
-- `github_url` (string): 相关的 GitHub 链接（可选）
-- `slug` (string): 自定义文章 slug（可选）
+**Parameters:**
+- `title` (string): Article title (required)
+- `content` (string): Article content, supports Markdown (required)
+- `tags` (array): Article tags (optional)
+- `author` (string): Author name (optional)
+- `readTime` (number): Estimated reading time in minutes (optional)
+- `date` (string): Publication date (ISO 8601 format) (optional)
+- `github_url` (string): Related GitHub link (optional)
+- `slug` (string): Custom article slug (optional)
 
 ### create_multiple_blog_posts
-批量创建多篇博客文章
+Create multiple blog articles in batch
 
-**参数:**
-- `articles` (array): 要创建的文章数组
+**Parameters:**
+- `articles` (array): Array of articles to create
 
-## 🔒 安全特性
+## 🔒 Security Features
 
-- **共享密钥认证** - 使用预配置的密钥进行基础认证
-- **时间戳验证** - 防止重放攻击
-- **签名验证** - 可选的额外安全层
-- **客户端白名单** - 限制允许的客户端访问
-- **环境变量管理** - 所有敏感信息存储在环境变量中
+- **Shared Secret Authentication** - Uses pre-configured keys for basic authentication
+- **Timestamp Verification** - Prevents replay attacks
+- **Signature Verification** - Optional additional security layer
+- **Client Whitelist** - Restricts allowed client access
+- **Environment Variable Management** - All sensitive information stored in environment variables
 
-## 🏗️ 博客端配置
+## 🏗️ Blog End Configuration
 
-### 1. API 端点
+### 1. API Endpoint
 
-在你的 Next.js 博客项目中创建 `/app/api/mcp/posts/route.ts`：
+Create `/app/api/mcp/posts/route.ts` in your Next.js blog project:
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
   }
 
-  // 基础密钥验证
+  // Basic secret verification
   const provided = req.headers.get('x-mcp-secret');
   if (!provided || provided !== secret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -115,13 +115,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  // 客户端白名单验证
+  // Client whitelist verification
   const allowedClients = process.env.MCP_ALLOWED_CLIENTS?.split(',') || [];
   if (allowedClients.length > 0 && body.client_id && !allowedClients.includes(body.client_id)) {
     return NextResponse.json({ error: 'Client not authorized' }, { status: 403 });
   }
 
-  // 创建文章逻辑...
+  // Article creation logic...
   const admin = createAdminClient();
   const finalSlug = body.slug ?? crypto.randomUUID();
 
@@ -153,24 +153,24 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-### 2. 环境变量配置
+### 2. Environment Variable Configuration
 
-在 Vercel 中配置以下环境变量：
+Configure the following environment variables in Vercel:
 
 ```bash
-# MCP 认证配置
+# MCP Authentication Configuration
 MCP_SHARED_SECRET=your_shared_secret_here
 MCP_CLIENT_ID=your_client_id
 MCP_SIGNATURE_SECRET=your_signature_secret
 MCP_ALLOWED_CLIENTS=client1,client2,client3
 
-# Supabase 配置
+# Supabase Configuration
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
-### 3. 中间件配置
+### 3. Middleware Configuration
 
-确保 `middleware.ts` 排除 API 路由：
+Ensure `middleware.ts` excludes API routes:
 
 ```typescript
 export const config = {
@@ -180,73 +180,73 @@ export const config = {
 };
 ```
 
-## 🧪 测试
+## 🧪 Testing
 
-### 本地测试
+### Local Testing
 
 ```bash
-# 构建项目
+# Build project
 npm run build
 
-# 启动 MCP 服务器
+# Start MCP server
 npm start
 
-# 测试配置
+# Test configuration
 npm test
 ```
 
-### API 测试
+### API Testing
 
 ```bash
 curl -X POST https://your-blog.com/api/mcp/posts \
   -H "Content-Type: application/json" \
   -H "x-mcp-secret: your_shared_secret_here" \
   -d '{
-    "title": "测试文章",
-    "content": "这是一篇测试文章",
+    "title": "Test Article",
+    "content": "This is a test article",
     "client_id": "your_client_id"
   }'
 ```
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
 src/
-├── index.ts          # 主入口文件
-├── types.ts          # 类型定义
-├── config.ts         # 配置解析
-├── blog-client.ts    # 博客 API 客户端
-└── mcp-server.ts     # MCP 服务器实现
+├── index.ts          # Main entry file
+├── types.ts          # Type definitions
+├── config.ts         # Configuration parsing
+├── blog-client.ts    # Blog API client
+└── mcp-server.ts     # MCP server implementation
 ```
 
-## 🚨 重要提醒
+## 🚨 Important Notes
 
-1. **私人服务** - 这是专为你的博客定制的私人服务，不对外公开
-2. **密钥安全** - 所有敏感信息都存储在环境变量中，不要提交到代码仓库
-3. **定期更新** - 建议定期更换签名密钥
-4. **本地测试** - 建议先在本地环境测试功能
+1. **Private Service** - This is a private service customized for your blog, not publicly available
+2. **Key Security** - All sensitive information is stored in environment variables, do not commit to code repository
+3. **Regular Updates** - It's recommended to regularly rotate signature keys
+4. **Local Testing** - It's recommended to test functionality in local environment first
 
-## 🎉 使用示例
+## 🎉 Usage Examples
 
-配置完成后，你可以在 Cursor 中这样使用：
+After configuration, you can use it in Cursor like this:
 
-### 创建单篇文章
+### Create Single Article
 ```
-请在我的博客中创建一篇关于 TypeScript 的文章，标题为"TypeScript 最佳实践"
-```
-
-### 批量创建文章
-```
-请在我的博客中创建三篇关于 React 的文章：
-1. React Hooks 详解
-2. React 性能优化
-3. React 状态管理
+Please create an article about TypeScript in my blog with the title "TypeScript Best Practices"
 ```
 
-## 📄 许可证
+### Create Multiple Articles
+```
+Please create three articles about React in my blog:
+1. React Hooks Deep Dive
+2. React Performance Optimization
+3. React State Management
+```
 
-MIT License - 详见 [LICENSE](./LICENSE) 文件
+## 📄 License
+
+MIT License - See [LICENSE](./LICENSE) file for details
 
 ---
 
-**注意**: 这是一个私人 MCP 服务，专为你的博客定制。所有敏感配置信息都存储在环境变量中，确保安全性。
+**Note**: This is a private MCP service customized for your blog. All sensitive configuration information is stored in environment variables to ensure security.
