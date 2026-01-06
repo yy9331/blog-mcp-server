@@ -1,6 +1,6 @@
 {
   "name": "@zyzy-org/blog-mcp-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "MCP server for automatically creating blog posts in your tech blog",
   "main": "dist/index.js",
   "bin": {
