@@ -100,5 +100,13 @@ export const tools: Record<string, MCPTool> = {
       },
       required: ["articles"]
     }
+  },
+  get_all_tags: {
+    name: "get_all_tags",
+    description: "查询博客中所有的标签（tags）",
+    inputSchema: {
+      type: "object",
+      properties: {}
+    }
   }
 };
