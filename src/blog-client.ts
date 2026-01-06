@@ -65,7 +65,7 @@ export class BlogClient {
   }
 
   async getAllTags(): Promise<string[]> {
-    const response = await fetch(`${this.config.blogUrl}/api/tags`, {
+    const response = await fetch(`${this.config.blogUrl}/api/mcp/tags`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
