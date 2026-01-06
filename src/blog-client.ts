@@ -63,4 +63,23 @@ export class BlogClient {
     }
     return results;
   }
+
+  async getAllTags(): Promise<string[]> {
+    const response = await fetch(`${this.config.blogUrl}/api/tags`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-mcp-secret': this.config.secret,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data: any = await response.json();
+    // 假设API返回格式为 { tags: string[] } 或直接返回 string[]
+    return Array.isArray(data) ? data : (data.tags || []);
+  }
 }

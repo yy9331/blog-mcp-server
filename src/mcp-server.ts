@@ -75,6 +75,14 @@ export class MCPServer {
                 text: `批量创建完成！\n\n成功: ${successCount} 篇\n失败: ${failCount} 篇\n\n详细信息: ${JSON.stringify(result, null, 2)}` 
               }] 
             });
+          } else if (name === "get_all_tags") {
+            const tags = await this.blogClient.getAllTags();
+            this.sendResponse(id, { 
+              content: [{ 
+                type: "text", 
+                text: `博客中的所有标签（共 ${tags.length} 个）：\n\n${tags.length > 0 ? tags.map((tag, index) => `${index + 1}. ${tag}`).join('\n') : '暂无标签'}` 
+              }] 
+            });
           } else {
             this.sendResponse(id, undefined, `未知工具: ${name}`);
           }
