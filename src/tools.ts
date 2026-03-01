@@ -108,5 +108,37 @@ export const tools: Record<string, MCPTool> = {
       type: "object",
       properties: {}
     }
+  },
+  patch_blog_post: {
+    name: "patch_blog_post",
+    description: "根据文章 URL 读取文章内容后做局部修改（不整篇替换）。传入文章链接和若干「查找-替换」对，只修改匹配到的部分。",
+    inputSchema: {
+      type: "object",
+      properties: {
+        article_url: {
+          type: "string",
+          description: "文章完整 URL，例如 https://www.zyzy.info/post/Qvk4wF0esIqWF-Pu34nup，或直接传文章 slug"
+        },
+        edits: {
+          type: "array",
+          description: "局部修改列表，按顺序对文章内容执行：每项把 find 的文本替换为 replace",
+          items: {
+            type: "object",
+            properties: {
+              find: {
+                type: "string",
+                description: "要查找的原文（会全部替换为 replace）"
+              },
+              replace: {
+                type: "string",
+                description: "替换后的新内容"
+              }
+            },
+            required: ["find", "replace"]
+          }
+        }
+      },
+      required: ["article_url", "edits"]
+    }
   }
 };

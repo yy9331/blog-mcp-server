@@ -9,6 +9,27 @@ export interface BlogPostData {
   slug?: string;
 }
 
+/** 博客 API 返回的单篇文章（用于 GET） */
+export interface BlogPost extends BlogPostData {
+  slug: string;
+}
+
+/** 局部修改：在文章内容中把 find 替换为 replace（可多次） */
+export interface ContentEdit {
+  find: string;
+  replace: string;
+}
+
+/** PATCH 文章时只传要更新的字段 */
+export interface PatchPostData {
+  content?: string;
+  title?: string;
+  tags?: string[];
+  author?: string;
+  readTime?: number;
+  github_url?: string;
+}
+
 export interface SecureBlogPostData extends BlogPostData {
   client_id: string;
   timestamp: number;

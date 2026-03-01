@@ -78,6 +78,24 @@
 **参数:**
 - `articles` (array): 要创建的文章数组
 
+### patch_blog_post
+根据文章 URL 读取内容后做**局部修改**（不整篇替换）。适合改错别字、改某一段、补一小节等。
+
+**参数:**
+- `article_url` (string): 文章完整 URL，例如 `https://www.zyzy.info/post/Qvk4wF0esIqWF-Pu34nup`，或直接传文章 slug
+- `edits` (array): 局部修改列表，按顺序执行；每项为 `{ find: string, replace: string }`，将内容中所有 `find` 替换为 `replace`
+
+**示例:** 把文中「旧术语」改成「新术语」，并修正一段话：
+```json
+{
+  "article_url": "https://www.zyzy.info/post/Qvk4wF0esIqWF-Pu34nup",
+  "edits": [
+    { "find": "旧术语", "replace": "新术语" },
+    { "find": "原来的段落文字", "replace": "修改后的段落文字" }
+  ]
+}
+```
+
 ## 🔒 安全特性
 
 - **共享密钥认证** - 使用预配置的密钥进行基础认证
@@ -153,6 +171,21 @@ export async function POST(req: NextRequest) {
 }
 ```
 
+**为支持「局部修改」功能，需额外提供按 slug 获取与更新的接口：**
+
+在博客中创建 `/app/api/mcp/posts/[slug]/route.ts`（或等价动态路由），并实现：
+
+- **GET** `/api/mcp/posts/[slug]`  
+  - 校验 `x-mcp-secret`，返回该 slug 对应文章，至少包含 `slug`、`content`（及可选 `title`、`tags` 等）。  
+  - 用于 MCP 先读取文章再在本地做 find/replace。
+
+- **PATCH** `/api/mcp/posts/[slug]`  
+  - 校验 `x-mcp-secret`，请求体为 JSON，仅包含要更新的字段（如 `content`、`title`、`tags` 等）。  
+  - 只更新传入的字段，未传字段保持不变；更新后建议更新 `lastModified`。  
+  - 返回如 `{ slug, message: "ok" }`。
+
+这样 MCP 工具 `patch_blog_post` 会：先 GET 该文章 → 在内存中对 `content` 按 `edits` 做 find/replace → 再 PATCH 回 `content`，实现局部修改。
+
 ### 2. 环境变量配置
 
 在 Vercel 中配置以下环境变量：
@@ -218,6 +251,201 @@ src/
 ├── blog-client.ts    # 博客 API 客户端
 └── mcp-server.ts     # MCP 服务器实现
 ```
+
+## 🔧 搭建 MCP 服务的要点
+
+基于本项目实现，以下是搭建一个 MCP 服务的核心要点：
+
+### 1. **实现 JSON-RPC 2.0 协议**
+
+MCP 基于 JSON-RPC 2.0 协议，需要实现标准的请求/响应格式：
+
+```typescript
+// 请求格式
+interface MCPRequest {
+  jsonrpc: "2.0";
+  id: string | number;
+  method: string;
+  params?: any;
+}
+
+// 响应格式
+interface MCPResponse {
+  jsonrpc: "2.0";
+  id: string | number;
+  result?: any;
+  error?: { code: number; message: string };
+}
+```
+
+### 2. **实现核心 MCP 方法**
+
+必须实现以下标准方法：
+
+- **`initialize`**: 初始化握手，返回服务器能力和版本信息
+- **`tools/list`**: 列出所有可用的工具
+- **`tools/call`**: 执行具体的工具调用
+
+```typescript
+switch (method) {
+  case "initialize":
+    // 返回协议版本、能力和服务器信息
+    break;
+  case "tools/list":
+    // 返回所有工具的定义
+    break;
+  case "tools/call":
+    // 执行工具并返回结果
+    break;
+}
+```
+
+### 3. **定义工具（Tools）**
+
+每个工具需要定义：
+- `name`: 工具名称
+- `description`: 工具描述（AI 会根据描述决定是否使用）
+- `inputSchema`: JSON Schema 格式的输入参数定义
+
+```typescript
+export const tools: Record<string, MCPTool> = {
+  my_tool: {
+    name: "my_tool",
+    description: "工具的功能描述",
+    inputSchema: {
+      type: "object",
+      properties: {
+        param1: { type: "string", description: "参数说明" }
+      },
+      required: ["param1"]
+    }
+  }
+};
+```
+
+### 4. **使用 stdio 通信**
+
+MCP 服务器通过标准输入输出（stdio）与客户端通信：
+
+```typescript
+import readline from 'readline';
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+rl.on('line', (line) => {
+  const request = JSON.parse(line);
+  // 处理请求并输出 JSON 响应
+  console.log(JSON.stringify(response));
+});
+```
+
+### 5. **配置管理**
+
+- 使用环境变量存储敏感信息（密钥、URL 等）
+- 支持命令行参数覆盖环境变量
+- 验证必需配置项
+
+```typescript
+export function parseConfig(): MCPConfig {
+  const config = {
+    apiUrl: process.env.API_URL,
+    secret: process.env.MCP_SECRET,
+    // ...
+  };
+  
+  // 验证必需参数
+  if (!config.apiUrl) {
+    throw new Error('API_URL 是必需的');
+  }
+  
+  return config;
+}
+```
+
+### 6. **错误处理**
+
+完善的错误处理机制：
+
+```typescript
+try {
+  // 执行工具逻辑
+  const result = await executeTool(params);
+  this.sendResponse(id, result);
+} catch (error) {
+  this.sendResponse(
+    id, 
+    undefined, 
+    error instanceof Error ? error.message : String(error)
+  );
+}
+```
+
+### 7. **安全性考虑**
+
+- **认证机制**: 使用共享密钥或签名验证
+- **时间戳验证**: 防止重放攻击
+- **客户端白名单**: 限制允许的客户端
+- **环境变量**: 敏感信息不硬编码
+
+### 8. **响应格式**
+
+工具调用成功时，返回标准的内容格式：
+
+```typescript
+{
+  content: [{
+    type: "text",
+    text: "操作结果描述"
+  }]
+}
+```
+
+### 9. **项目配置**
+
+在 `package.json` 中配置：
+
+```json
+{
+  "bin": {
+    "your-mcp-server": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+```
+
+### 10. **客户端配置**
+
+在 Cursor 的 `~/.cursor/mcp.json` 中配置：
+
+```json
+{
+  "Your MCP Server": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "your-package@latest"],
+    "env": {
+      "API_URL": "https://your-api.com",
+      "MCP_SECRET": "your_secret"
+    }
+  }
+}
+```
+
+### 关键要点总结
+
+1. ✅ **协议标准**: 严格遵循 JSON-RPC 2.0 和 MCP 协议规范
+2. ✅ **工具定义**: 清晰描述工具功能和参数，便于 AI 理解和使用
+3. ✅ **通信方式**: 使用 stdio 进行进程间通信
+4. ✅ **配置灵活**: 支持环境变量和命令行参数
+5. ✅ **错误处理**: 完善的错误捕获和响应机制
+6. ✅ **安全性**: 多层安全验证机制
+7. ✅ **可发布**: 打包为 npm 包，支持 npx 直接运行
 
 ## 🚨 重要提醒
 

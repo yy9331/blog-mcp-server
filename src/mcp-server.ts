@@ -83,6 +83,14 @@ export class MCPServer {
                 text: `博客中的所有标签（共 ${tags.length} 个）：\n\n${tags.length > 0 ? tags.map((tag, index) => `${index + 1}. ${tag}`).join('\n') : '暂无标签'}` 
               }] 
             });
+          } else if (name === "patch_blog_post") {
+            const result = await this.blogClient.patchBlogPostByUrl(args.article_url, args.edits);
+            this.sendResponse(id, { 
+              content: [{ 
+                type: "text", 
+                text: `文章已局部更新！\n\nslug: ${result.slug}\n${result.message}` 
+              }] 
+            });
           } else {
             this.sendResponse(id, undefined, `未知工具: ${name}`);
           }
